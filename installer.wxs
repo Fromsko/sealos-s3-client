@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Sealos S3 Client"
+           Manufacturer="Sealos"
+           Version="$(ProductVersion)"
+           UpgradeCode="6B29FC40-CA47-1067-B31D-00DD010662DA">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Sealos S3 Client">
+        <Component Id="MainExecutable" Guid="12345678-1234-1234-1234-123456789012">
+          <File Id="SealosS3ClientExe" Source="sealos-s3-client.exe" KeyPath="yes" />
+          <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="ProductFeature" Title="Sealos S3 Client" Level="1">
+      <ComponentRef Id="MainExecutable" />
+    </Feature>
+
+  </Package>
+</Wix>

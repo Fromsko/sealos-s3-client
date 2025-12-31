@@ -23,10 +23,6 @@ jobs:
             goarch: amd64
           - goos: darwin
             goarch: arm64
-          - goos: windows
-            goarch: amd64
-          - goos: windows
-            goarch: arm64
 
     steps:
       - name: Checkout
@@ -42,11 +38,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          EXT=""
-          if [ "$GOOS" = "windows" ]; then
-            EXT=".exe"
-          fi
-          OUTPUT_NAME="sealos-s3-client-${GOOS}-${GOARCH}${EXT}"
+          OUTPUT_NAME="sealos-s3-client-${GOOS}-${GOARCH}"
           go build -ldflags="-s -w" -o ${OUTPUT_NAME} .
 
       - name: Upload artifact
@@ -55,9 +47,57 @@ jobs:
           name: sealos-s3-client-${{ matrix.goos }}-${{ matrix.goarch }}
           path: sealos-s3-client-*
 
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Build exe
+        env:
+          GOOS: windows
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -ldflags="-s -w" -o sealos-s3-client.exe .
+
+      - name: Install WiX Toolset
+        run: |
+          dotnet tool install --global wix --version 5.0.0
+
+      - name: Create MSI
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+            $version = "1.0.0"
+          }
+          wix build -arch ${{ matrix.goarch }} -d ProductVersion=$version -d Platform=${{ matrix.goarch }} -o sealos-s3-client-windows-${{ matrix.goarch }}.msi installer.wxs
+
+      - name: Rename exe
+        run: |
+          move sealos-s3-client.exe sealos-s3-client-windows-${{ matrix.goarch }}.exe
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sealos-s3-client-windows-${{ matrix.goarch }}
+          path: |
+            sealos-s3-client-windows-${{ matrix.goarch }}.exe
+            sealos-s3-client-windows-${{ matrix.goarch }}.msi
+
   release:
     name: Release
-    needs: build
+    needs: [build, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,7 +111,7 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p release
-          find artifacts -type f -name "sealos-s3-client-*" -exec mv {} release/ \;
+          find artifacts -type f \( -name "sealos-s3-client-*" \) -exec mv {} release/ \;
           cd release
           for file in *; do
             sha256sum "$file" >> checksums.txt
