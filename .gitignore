@@ -1,0 +1,16 @@
+# Credentials - NEVER commit these
+.env
+*.env.local
+
+# Binaries
+s3-client
+s3-client.exe
+
+# Test files
+test-*.txt
+downloaded-*.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
