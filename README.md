@@ -1,90 +1,92 @@
 # Sealos S3 Integration Client
 
-一个生产级的 Go S3 集成客户端，用于与 Sealos 对象存储服务交互。
+English | [中文](README_ZH.md)
 
-## 特性
+A production-grade Go S3 integration client for interacting with Sealos Object Storage service.
 
-- ✅ 完整的 S3 操作支持（上传、下载、列表、删除）
-- ✅ 自动重试机制（指数退避）
-- ✅ 并发操作支持（带限流）
-- ✅ 预签名 URL 生成
-- ✅ 生产级错误处理
-- ✅ 详细的日志记录
-- ✅ 连接池优化
+## Features
 
-## 快速开始
+- ✅ Full S3 operations support (upload, download, list, delete)
+- ✅ Automatic retry mechanism (exponential backoff)
+- ✅ Concurrent operations support (with rate limiting)
+- ✅ Presigned URL generation
+- ✅ Production-grade error handling
+- ✅ Detailed logging
+- ✅ Connection pool optimization
 
-### 安装依赖
+## Quick Start
+
+### Install Dependencies
 
 ```bash
 go mod download
 ```
 
-### 基本使用
+### Basic Usage
 
 ```bash
-# 运行演示
+# Run demo
 go run . -cmd demo
 
-# 上传文件
+# Upload file
 go run . -cmd upload -object myfile.txt -file ./myfile.txt
 
-# 下载文件
+# Download file
 go run . -cmd download -object myfile.txt -file ./downloaded.txt
 
-# 列出对象
+# List objects
 go run . -cmd list -prefix "documents/"
 
-# 删除对象
+# Delete object
 go run . -cmd delete -object myfile.txt
 
-# 生成预签名 URL
+# Generate presigned URL
 go run . -cmd presigned -object myfile.txt
 ```
 
-## 配置
+## Configuration
 
-### 命令行参数
+### Command Line Arguments
 
 ```bash
--endpoint string      S3 端点
--key string          访问密钥
--secret string       秘密密钥
--bucket string       Bucket 名称
--object string       对象名称
--file string         文件路径
--prefix string       列表前缀
--external            使用外部端点
+-endpoint string      S3 endpoint
+-key string          Access key
+-secret string       Secret key
+-bucket string       Bucket name
+-object string       Object name
+-file string         File path
+-prefix string       List prefix
+-external            Use external endpoint
 ```
 
-## 端点
+## Endpoints
 
-- **内部端点**（推荐）：`object-storage.objectstorage-system.svc.cluster.local`
+- **Internal Endpoint** (Recommended): `object-storage.objectstorage-system.svc.cluster.local`
 
-  - 用于 Sealos 平台内应用
-  - 无流量费用
-  - 低延迟
+  - For applications within Sealos platform
+  - No traffic charges
+  - Low latency
 
-- **外部端点**：`objectstorageapi.hzh.sealos.run`
-  - 用于外部网络访问
-  - 可能产生流量费用
+- **External Endpoint**: `objectstorageapi.hzh.sealos.run`
+  - For external network access
+  - May incur traffic charges
 
-## 项目结构
+## Project Structure
 
 ```
 sealos-s3-client/
-├── main.go           # 主程序和 CLI 接口
-├── config.go         # 配置管理
-├── client.go         # S3 客户端核心
-├── operations.go     # 基础操作（上传、下载等）
-├── concurrent.go     # 并发操作
-├── go.mod            # Go 模块定义
-└── README.md         # 本文件
+├── main.go           # Main program and CLI interface
+├── config.go         # Configuration management
+├── client.go         # S3 client core
+├── operations.go     # Basic operations (upload, download, etc.)
+├── concurrent.go     # Concurrent operations
+├── go.mod            # Go module definition
+└── README.md         # This file
 ```
 
-## 代码示例
+## Code Examples
 
-### 初始化客户端
+### Initialize Client
 
 ```go
 package main
@@ -112,11 +114,11 @@ func main() {
 
     ctx := context.Background()
 
-    // 使用 client 进行操作
+    // Use client for operations
 }
 ```
 
-### 上传文件
+### Upload File
 
 ```go
 err := client.UploadFile(ctx, "myfile.txt", "./local-file.txt")
@@ -125,7 +127,7 @@ if err != nil {
 }
 ```
 
-### 下载文件
+### Download File
 
 ```go
 err := client.DownloadFile(ctx, "myfile.txt", "./downloaded.txt")
@@ -134,7 +136,7 @@ if err != nil {
 }
 ```
 
-### 列出对象
+### List Objects
 
 ```go
 objects, err := client.ListObjects(ctx, "prefix/")
@@ -147,7 +149,7 @@ for _, obj := range objects {
 }
 ```
 
-### 并发上传
+### Concurrent Upload
 
 ```go
 files := map[string]string{
@@ -160,7 +162,7 @@ results := client.UploadFilesParallel(ctx, files, 10)
 client.PrintResults(results)
 ```
 
-### 生成预签名 URL
+### Generate Presigned URL
 
 ```go
 import "time"
@@ -173,119 +175,119 @@ if err != nil {
 println("Download URL:", url)
 ```
 
-## 错误处理
+## Error Handling
 
-客户端自动处理以下错误：
+The client automatically handles the following errors:
 
-- **网络错误**：连接超时、连接重置等（自动重试）
-- **临时错误**：服务暂时不可用（自动重试）
-- **永久错误**：权限不足、对象不存在等（立即返回）
+- **Network Errors**: Connection timeout, connection reset, etc. (auto-retry)
+- **Temporary Errors**: Service temporarily unavailable (auto-retry)
+- **Permanent Errors**: Insufficient permissions, object not found, etc. (immediate return)
 
-重试策略：
+Retry Strategy:
 
-- 最多重试 3 次
-- 使用指数退避：1s, 2s, 4s
+- Maximum 3 retries
+- Exponential backoff: 1s, 2s, 4s
 
-## 性能优化
+## Performance Optimization
 
-### 连接池
+### Connection Pool
 
-客户端自动配置连接池：
+The client automatically configures connection pool:
 
-- 最大空闲连接：100
-- 每个主机最大空闲连接：10
-- 空闲连接超时：90 秒
+- Max idle connections: 100
+- Max idle connections per host: 10
+- Idle connection timeout: 90 seconds
 
-### 并发限制
+### Concurrency Limit
 
-并发操作默认限制为 10 个并发任务，可通过参数调整：
+Concurrent operations default to 10 concurrent tasks, adjustable via parameter:
 
 ```go
-results := client.UploadFilesParallel(ctx, files, 20) // 20 个并发
+results := client.UploadFilesParallel(ctx, files, 20) // 20 concurrent
 ```
 
-### 大文件处理
+### Large File Handling
 
-minio-go 自动处理大文件分段上传：
+minio-go automatically handles large file multipart uploads:
 
-- 文件 > 64MB 时自动分段
-- 可配置分段大小和并发数
+- Files > 64MB are automatically segmented
+- Configurable segment size and concurrency
 
-## 最佳实践
+## Best Practices
 
-1. **凭证管理**
+1. **Credential Management**
 
-   - 不要硬编码凭证
-   - 使用环境变量或配置文件
-   - 定期轮换访问密钥
+   - Never hardcode credentials
+   - Use environment variables or config files
+   - Rotate access keys regularly
 
-2. **错误处理**
+2. **Error Handling**
 
-   - 总是检查返回的 error
-   - 区分临时错误和永久错误
-   - 记录详细的错误信息
+   - Always check returned errors
+   - Distinguish between temporary and permanent errors
+   - Log detailed error information
 
-3. **资源管理**
+3. **Resource Management**
 
-   - 及时关闭文件和连接
-   - 使用 defer 确保资源释放
-   - 监控内存使用
+   - Close files and connections promptly
+   - Use defer to ensure resource release
+   - Monitor memory usage
 
-4. **性能**
+4. **Performance**
 
-   - 使用内部端点避免流量费用
-   - 并发操作时合理设置并发数
-   - 监控 S3 操作的延迟
+   - Use internal endpoint to avoid traffic charges
+   - Set reasonable concurrency for concurrent operations
+   - Monitor S3 operation latency
 
-5. **安全**
-   - 使用预签名 URL 而不是暴露凭证
-   - 验证上传文件的完整性
-   - 定期审查访问日志
+5. **Security**
+   - Use presigned URLs instead of exposing credentials
+   - Verify uploaded file integrity
+   - Regularly review access logs
 
-## 故障排除
+## Troubleshooting
 
-### 连接失败
+### Connection Failed
 
 ```
 failed to verify S3 connection: failed to check bucket existence
 ```
 
-**解决方案**：
+**Solution**:
 
-- 检查端点是否正确
-- 检查网络连接
-- 验证凭证是否正确
+- Check if endpoint is correct
+- Check network connection
+- Verify credentials are correct
 
-### 权限错误
+### Permission Error
 
 ```
 upload failed: AccessDenied
 ```
 
-**解决方案**：
+**Solution**:
 
-- 验证 Access Key 和 Secret Key
-- 检查 Bucket 权限
-- 确保凭证有足够的权限
+- Verify Access Key and Secret Key
+- Check Bucket permissions
+- Ensure credentials have sufficient permissions
 
-### 超时错误
+### Timeout Error
 
 ```
 upload failed: i/o timeout
 ```
 
-**解决方案**：
+**Solution**:
 
-- 检查网络连接
-- 增加超时时间
-- 检查文件大小
+- Check network connection
+- Increase timeout duration
+- Check file size
 
-## 许可证
+## License
 
 MIT
 
-## 参考资源
+## References
 
-- [Sealos 官方文档](https://docs.sealos.io)
+- [Sealos Official Documentation](https://docs.sealos.io)
 - [MinIO Go SDK](https://github.com/minio/minio-go)
-- [AWS S3 API 参考](https://docs.aws.amazon.com/s3/)
+- [AWS S3 API Reference](https://docs.aws.amazon.com/s3/)
