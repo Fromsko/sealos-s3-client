@@ -6,6 +6,7 @@
            UpgradeCode="6B29FC40-CA47-1067-B31D-00DD010662DA">
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="Sealos S3 Client">
